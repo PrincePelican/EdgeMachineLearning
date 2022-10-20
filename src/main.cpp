@@ -2,6 +2,7 @@
 #include "BluetoothSerial.h"
 #include <Wire.h>
 #include <Adafruit_MPU6050.h>
+#include "NeuralNetwork.cpp"
 
 #define LED 2
 Adafruit_MPU6050 mpu;
@@ -22,6 +23,9 @@ bool openGyro = false;
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(9600);
+
+  NeuralNetwork* Nn = new NeuralNetwork();
+
   Bt.begin("Esp32");
   if(!mpu.begin()){
     Serial.println("Nie udalo sie zainicjalizowac mpu");
