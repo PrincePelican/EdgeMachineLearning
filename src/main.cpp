@@ -14,17 +14,21 @@ String getGyro();
 
 sensors_event_t a, g, temp;
 
+NeuralNetwork* NN;
+
 float gX, gY, gZ;
 float aX, aY, aZ;
 
 bool openAcc = false;
 bool openGyro = false;
 
+
+
 void setup() {
   pinMode(LED, OUTPUT);
   Serial.begin(9600);
 
-  NeuralNetwork* Nn = new NeuralNetwork();
+  NN = new NeuralNetwork();
 
   Bt.begin("Esp32");
   if(!mpu.begin()){
@@ -32,6 +36,7 @@ void setup() {
     digitalWrite(LED, HIGH);
   }
   Wire.begin();
+
 }
 
 
@@ -57,6 +62,11 @@ void loop() {
   
   checkMsg(c);
   delay(300);
+
+  NN->getInputBuffer()[0] = 1;
+  float result = NN->predict();
+
+  Serial.printf("%f", result);
 }
 
 

@@ -24,12 +24,18 @@ class NeuralNetwork{
         errorReporter = new tflite::MicroErrorReporter();
 
         tensorArea = (uint8_t*)malloc(kArenaSize);
+        if (!tensorArea)
+        {   
+            errorReporter->Report("Could not allocate arena");
+            return;
+        }
+    
 
-        model = tflite::GetModel(MnistModel);
+        model = tflite::GetModel(TfLiteModel_tflite);
 
         if (model->version() != TFLITE_SCHEMA_VERSION){
-        errorReporter->Report("Model didnt load");
-        return;
+            errorReporter->Report("Model didnt load");
+            return;
         }
 
         resolver = new tflite::MicroMutableOpResolver<10>();
@@ -52,6 +58,10 @@ class NeuralNetwork{
 
         input = interpreter->input(0);
         output = interpreter->output(0);
+    }
+
+    float* getInputBuffer(){
+        return input->data.f;
     }
 
     float predict(){

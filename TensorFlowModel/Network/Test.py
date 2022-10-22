@@ -30,7 +30,7 @@ converter = tf.lite.TFLiteConverter.from_keras_model(model)
 converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
 tflite_model = converter.convert()
 
-open("TfLiteModel", "wb").write(tflite_model)
+open("TfLiteModel.tflite", "wb").write(tflite_model)
 
 with open("MnistModel" + '.h', 'w') as file:
   file.write(hex_to_c_array(tflite_model, "MnistModel"))
