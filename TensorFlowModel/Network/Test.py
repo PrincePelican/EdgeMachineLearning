@@ -5,35 +5,65 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers
 from keras.datasets import mnist
-import h5py
 from HexToCArray import *
+import os
 
-(train_X, train_Y), (test_X, test_Y) = mnist.load_data()
-train_X = train_X/255.0 
-test_X = test_X/255.0
+# (train_X, train_Y), (test_X, test_Y) = mnist.load_data()
+# train_X = train_X/255.0 
+# test_X = test_X/255.0
+
+# train_X = train_X.reshape(60000, 784)
+# test_X = test_X.reshape(10000, 784)
+
+def data_generator():
+    while(True):
+        number1 = np.random.uniform();
+        number2 = np.random.uniform();
+
+        X = [number1, number2]
+        Y = 1 if number2 > number1 else 0
+        yield X, [Y]
+        
+train_dataset = tf.data.Dataset.from_generator(
+    data_generator, 
+    output_types = (tf.float32, tf.int32),
+    output_shapes=((2), (1))
+)
+train_dataset = train_dataset.batch(batch_size=30)
+
 
 model = keras.Sequential([
-    layers.Flatten(input_shape=(28,28)),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(10)
+    layers.Input(shape=(2)),
+    layers.Dense(10, activation='relu'),
+    layers.Dense(2, 'softmax')
 ])
 
 model.summary()
 
-model.compile(optimizer='adam',loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=['accuracy'])
+model.compile(optimizer='adam',loss=keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
 
-model.fit(train_X, train_Y, epochs = 5)
+# model.fit(train_X, train_Y, epochs = 5)
 
-model.evaluate(test_X, test_Y)
+# model.evaluate(test_X, test_Y)
+
+
+
+model.fit(
+    train_dataset,
+    steps_per_epoch=1000,
+    epochs=4
+)
+
 
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
-converter.optimizations = [tf.lite.Optimize.OPTIMIZE_FOR_SIZE]
+converter.optimizations = [tf.lite.Optimize.DEFAULT]
 tflite_model = converter.convert()
 
 open("TfLiteModel.tflite", "wb").write(tflite_model)
 
-with open("MnistModel" + '.h', 'w') as file:
-  file.write(hex_to_c_array(tflite_model, "MnistModel"))
+os.system('xxd -i TfLiteModel.tflite > MnistModel.h')
+
+
 
 
 

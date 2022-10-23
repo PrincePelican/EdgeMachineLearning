@@ -11,6 +11,7 @@ BluetoothSerial Bt;
 void checkMsg(char znak);
 String getAcc();
 String getGyro();
+void Predict();
 
 sensors_event_t a, g, temp;
 
@@ -21,6 +22,7 @@ float aX, aY, aZ;
 
 bool openAcc = false;
 bool openGyro = false;
+bool openPredict = true;
 
 
 
@@ -59,14 +61,15 @@ void loop() {
   if(openGyro){
     Bt.print(getGyro().c_str());
   }
+
+  if(openPredict){
+    Predict();
+  }
   
   checkMsg(c);
   delay(300);
 
-  NN->getInputBuffer()[0] = 1;
-  float result = NN->predict();
 
-  Serial.printf("%f", result);
 }
 
 
@@ -91,7 +94,7 @@ void checkMsg(char znak){
       break;
 
     case '5':
-      /* code */
+      openPredict = !openPredict;
       break;
 
     default:
@@ -114,6 +117,25 @@ String getGyro(){
   gZ = a.gyro.z;
   return "Gyro:" + String(gX) + "," + String(gY) + "," + String(gZ) + "\n";
 }
+
+void Predict(){
+  float number1 = random(100) / 100.0;
+  float number2 = random(100) / 100.0;
+
+  NN->getInputBuffer()[0] = number1;
+  NN->getInputBuffer()[1] = number2;
+
+  float* result = NN->predict();
+
+
+  const char *expected = number2 > number1 ? "True" : "False";
+
+  const char *predicted = result[1] > result[0] ? "True" : "False";
+ 
+  Serial.printf("%.2f %.2f - result1 %.2f - result2 %.2f Expected %s, Predicted %s\n", number1, number2, result[0], result[1], expected, predicted);
+}
+
+
 
 
 

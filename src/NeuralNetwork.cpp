@@ -5,7 +5,7 @@
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "MnistModel.h"
 
-const int kArenaSize = 20*1024;
+const int kArenaSize = 70*1024;
 
 class NeuralNetwork{
     private:
@@ -20,41 +20,40 @@ class NeuralNetwork{
     public: 
 
     NeuralNetwork(){
-        
         errorReporter = new tflite::MicroErrorReporter();
 
-        tensorArea = (uint8_t*)malloc(kArenaSize);
-        if (!tensorArea)
-        {   
-            errorReporter->Report("Could not allocate arena");
-            return;
-        }
-    
-
         model = tflite::GetModel(TfLiteModel_tflite);
-
-        if (model->version() != TFLITE_SCHEMA_VERSION){
-            errorReporter->Report("Model didnt load");
+        if (model->version() != TFLITE_SCHEMA_VERSION)
+        {
+            TF_LITE_REPORT_ERROR(errorReporter, "Model provided is schema version %d not equal to supported version %d.",
+                                model->version(), TFLITE_SCHEMA_VERSION);
             return;
         }
 
         resolver = new tflite::MicroMutableOpResolver<10>();
-
         resolver->AddFullyConnected();
-        resolver->AddMul();
-        resolver->AddAdd();
-        resolver->AddLogistic();
-        resolver->AddReshape();
-        resolver->AddQuantize();
-        resolver->AddDequantize();
+        resolver->AddSoftmax();
 
-        interpreter = new tflite::MicroInterpreter(model, *resolver, tensorArea, kArenaSize, errorReporter);
 
-        TfLiteStatus tfliteStatus = interpreter->AllocateTensors();
-
-        if(tfliteStatus = kTfLiteOk){
-            errorReporter->Report("Allocate failed");
+        tensorArea = (uint8_t *)malloc(kArenaSize);
+        if (!tensorArea)
+        {
+            TF_LITE_REPORT_ERROR(errorReporter, "Could not allocate arena");
+            return;
         }
+
+        interpreter = new tflite::MicroInterpreter(
+            model, *resolver, tensorArea, kArenaSize, errorReporter);
+
+        TfLiteStatus allocate_status = interpreter->AllocateTensors();
+        if (allocate_status != kTfLiteOk)
+        {
+            TF_LITE_REPORT_ERROR(errorReporter, "AllocateTensors() failed");
+            return;
+        }
+
+        size_t used_bytes = interpreter->arena_used_bytes();
+        TF_LITE_REPORT_ERROR(errorReporter, "Used bytes %d\n", used_bytes);
 
         input = interpreter->input(0);
         output = interpreter->output(0);
@@ -64,9 +63,9 @@ class NeuralNetwork{
         return input->data.f;
     }
 
-    float predict(){
+    float* predict(){
         interpreter->Invoke();
-        return output->data.f[0];
+        return output->data.f;
     }
 
 };
