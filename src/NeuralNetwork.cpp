@@ -5,7 +5,7 @@
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "MnistModel.h"
 
-const int kArenaSize = 70*1024;
+const int kArenaSize = 10*1024;
 
 class NeuralNetwork{
     private:

@@ -20,11 +20,8 @@ NeuralNetwork* NN;
 float gX, gY, gZ;
 float aX, aY, aZ;
 
-bool openAcc = false;
-bool openGyro = false;
-bool openPredict = true;
-
-
+bool openDataFlow = false;
+bool openPredict = false;
 
 void setup() {
   pinMode(LED, OUTPUT);
@@ -32,7 +29,7 @@ void setup() {
 
   NN = new NeuralNetwork();
 
-  Bt.begin("Esp32");
+  Bt.begin("Esp32");// D21:SDA   D22:SDL
   if(!mpu.begin()){
     Serial.println("Nie udalo sie zainicjalizowac mpu");
     digitalWrite(LED, HIGH);
@@ -40,8 +37,6 @@ void setup() {
   Wire.begin();
 
 }
-
-
 
 void loop() {
   char c = 0;
@@ -52,14 +47,9 @@ void loop() {
     c = Bt.read();
     Serial.write(c);
     Serial.print("\n");
-
   }
-  if(openAcc){
-    Bt.print(getAcc().c_str());
-
-  }
-  if(openGyro){
-    Bt.print(getGyro().c_str());
+  if(openDataFlow){
+    Bt.print((getAcc() + getGyro()).c_str());
   }
 
   if(openPredict){
@@ -67,11 +57,10 @@ void loop() {
   }
   
   checkMsg(c);
-  delay(300);
+  delay(100);
 
 
 }
-
 
 void checkMsg(char znak){
 
@@ -86,14 +75,10 @@ void checkMsg(char znak){
       break;
 
     case '3':
-      openAcc = !openAcc;
+      openDataFlow = !openDataFlow;
       break;
 
     case '4':
-      openGyro = !openGyro;
-      break;
-
-    case '5':
       openPredict = !openPredict;
       break;
 
@@ -107,7 +92,7 @@ String getAcc(){
   aX = a.acceleration.x;
   aY = a.acceleration.y;
   aZ = a.acceleration.z;
-  return "Acc:" + String(aX) + "," + String(aY) + "," + String(aZ) + "\n";
+  return String(aX) + "," + String(aY) + "," + String(aZ) + ",";
 }
 
 String getGyro(){
@@ -115,7 +100,7 @@ String getGyro(){
   gX = a.gyro.x;
   gY = a.gyro.y;
   gZ = a.gyro.z;
-  return "Gyro:" + String(gX) + "," + String(gY) + "," + String(gZ) + "\n";
+  return String(gX) + "," + String(gY) + "," + String(gZ) + ",";
 }
 
 void Predict(){
