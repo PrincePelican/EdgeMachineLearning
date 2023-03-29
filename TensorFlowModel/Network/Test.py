@@ -31,8 +31,13 @@ print(train_X.shape)
 print(train_Y.shape)
 
 model = keras.Sequential([
-    layers.Input(shape=(18)),
-    layers.Dense(20, activation='relu'),
+    layers.Input(shape=(test_X.shape[1])),
+    layers.Dense(24, activation='relu'),
+    layers.Dense(10, activation='relu'),
+    layers.Dense(10, activation='relu'),
+    layers.Dense(10, activation='relu'),
+    layers.Dense(10, activation='relu'),
+    layers.Dense(30, activation='relu'),
     layers.Dense(5, 'softmax')
 ])
 
@@ -40,7 +45,7 @@ model.summary()
 
 model.compile(optimizer='adam',loss=keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
 
-model.fit(train_X, train_Y, epochs = 10)
+model.fit(train_X, train_Y, epochs = 20)
 
 model.evaluate(test_X, test_Y)
 
