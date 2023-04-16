@@ -7,11 +7,13 @@
 #define LED 2
 Adafruit_MPU6050 mpu;
 BluetoothSerial Bt;
+float* accSet;
+int licznikDanych = 0;
 
 void checkMsg(char znak);
-String getAcc();
-String getGyro();
-void Predict();
+String getAccGyro();
+void predictOutput();
+String getActivityType(float* result);
 
 sensors_event_t a, g, temp;
 
@@ -24,6 +26,7 @@ bool openDataFlow = false;
 bool openPredict = false;
 
 void setup() {
+  accSet = new float[9];
   pinMode(LED, OUTPUT);
   Serial.begin(9600);
 
@@ -40,26 +43,27 @@ void setup() {
 
 void loop() {
   char c = 0;
+
   if(Serial.available()){
     Bt.write(Serial.read());
   }
   if(Bt.available()){
     c = Bt.read();
-    Serial.write(c);
-    Serial.print("\n");
-  }
-  if(openDataFlow){
-    Bt.print((getAcc() + getGyro()).c_str());
   }
 
-  if(openPredict){
-    Predict();
-  }
+  String dataAccGyro = getAccGyro();
   
+  if(openDataFlow){
+    Bt.print(dataAccGyro.c_str());
+  }
+
+  if(openPredict && licznikDanych == 3){
+      predictOutput();
+  }
+
+
   checkMsg(c);
-  delay(100);
-
-
+  delay(400);
 }
 
 void checkMsg(char znak){
@@ -81,45 +85,90 @@ void checkMsg(char znak){
     case '4':
       openPredict = !openPredict;
       break;
+    
+    case '5':
+      openDataFlow = false;
+      break;
+
+    case '6':
+      openPredict = false;
+      break;
 
     default:
       break;
   }
 }
 
-String getAcc(){
+String getAccGyro(){
+  if(licznikDanych==3){
+    licznikDanych=0;
+  }
   mpu.getEvent(&a, &g, &temp);
   aX = a.acceleration.x;
   aY = a.acceleration.y;
   aZ = a.acceleration.z;
-  return String(aX) + "," + String(aY) + "," + String(aZ) + ",";
-}
-
-String getGyro(){
-  mpu.getEvent(&a, &g, &temp);
   gX = a.gyro.x;
   gY = a.gyro.y;
   gZ = a.gyro.z;
-  return String(gX) + "," + String(gY) + "," + String(gZ) + ",";
+  accSet[licznikDanych*3+0] = a.acceleration.x;
+  accSet[licznikDanych*3+1] = a.acceleration.y;
+  accSet[licznikDanych*3+2] = a.acceleration.z;
+  licznikDanych++;
+  return String(aX) + "," + String(aY) + "," + String(aZ) + "," + String(gX) + "," + String(gY) + "," + String(gZ);
 }
 
-void Predict(){
-  float number1 = random(100) / 100.0;
-  float number2 = random(100) / 100.0;
-
-  NN->getInputBuffer()[0] = number1;
-  NN->getInputBuffer()[1] = number2;
+void predictOutput(){
+  for(int i=0; i<9; i++){
+    printf("A%d: %.2f", i, accSet[i]);
+  }
+  printf("\n");
+  NN->getInputBuffer()[0] = accSet[0];
+  NN->getInputBuffer()[1] = accSet[1];
+  NN->getInputBuffer()[2] = accSet[2];
+  NN->getInputBuffer()[3] = accSet[3];
+  NN->getInputBuffer()[4] = accSet[4];
+  NN->getInputBuffer()[5] = accSet[5];
+  NN->getInputBuffer()[6] = accSet[6];
+  NN->getInputBuffer()[7] = accSet[7];
+  NN->getInputBuffer()[8] = accSet[8];;
 
   float* result = NN->predict();
+  
+  Serial.printf("result1 %.2f - result2 %.2f - result3 %.2f, result4 %.2f \n",result[0], result[1], result[2], result[3]);
 
-
-  const char *expected = number2 > number1 ? "True" : "False";
-
-  const char *predicted = result[1] > result[0] ? "True" : "False";
- 
-  Serial.printf("%.2f %.2f - result1 %.2f - result2 %.2f Expected %s, Predicted %s\n", number1, number2, result[0], result[1], expected, predicted);
+  Bt.print(getActivityType(result).c_str());
 }
 
+
+String getActivityType(float* result)
+{
+  int maks = 0;
+  for(int i = 1; i < 4; i++){
+    if(result[i] > result[maks]){
+      maks = i;
+    }
+  }
+
+  switch (maks)
+  {
+  case 0:
+    return "Chód";
+    break;
+
+  case 1:
+     return "Bieg";
+    break;
+  
+  case 2:
+     return "Rower";
+    break;
+  
+  case 3:
+     return "Spoczynek";
+    break;
+
+  }
+}
 
 
 

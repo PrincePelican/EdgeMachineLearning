@@ -3,18 +3,19 @@ import os
 
 
 interval = 4 # how much row will be skipped
-merge_row_number = 4 # how much data will be in one sample
-
+merge_row_number = 3 # how much data will be in one sample
 
 dir = os.getcwd() + "\\Data\\"
-
 file_list = os.listdir(dir)
+
+print(file_list)
 
 def prepareAllFiles(interval: int, merge_row_number: int):
     merged = pd.DataFrame()
     for x in file_list:
         to_merged = prepareFileData(x, merge_row_number, interval)
         merged = pd.concat([merged, to_merged])
+    merged = merged.sample(frac=1)
     merged.to_csv("AllData.csv", index=False)
 
 def prepareFileData(file: str , merge_row_number: int, interval: int) -> pd.DataFrame:
@@ -38,9 +39,9 @@ def prepColumns(merge_row_number):
         columns.append(f"A{i*3+1}")
         columns.append(f"A{i*3+2}")
         columns.append(f"A{i*3+3}")
-        columns.append(f"G{i*3+1}")
-        columns.append(f"G{i*3+2}")
-        columns.append(f"G{i*3+3}")
+        columns.append(f"G")
+        columns.append(f"G")
+        columns.append(f"G")
         columns.append(f"Activity")
     return columns
 

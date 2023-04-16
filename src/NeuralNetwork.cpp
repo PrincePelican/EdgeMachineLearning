@@ -18,7 +18,6 @@ class NeuralNetwork{
     uint8_t *tensorArea;
 
     public: 
-
     NeuralNetwork(){
         errorReporter = new tflite::MicroErrorReporter();
 
@@ -32,6 +31,7 @@ class NeuralNetwork{
 
         resolver = new tflite::MicroMutableOpResolver<10>();
         resolver->AddFullyConnected();
+        resolver->AddRelu();
         resolver->AddSoftmax();
 
 
