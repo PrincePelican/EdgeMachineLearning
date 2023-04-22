@@ -5,15 +5,19 @@
 #include "NeuralNetwork.cpp"
 
 #define LED 2
+#define SampleSize 4
 Adafruit_MPU6050 mpu;
 BluetoothSerial Bt;
 float* accSet;
+float* gyroSet;
 int licznikDanych = 0;
+unsigned int delayTime = 100;
 
 void checkMsg(char znak);
 String getAccGyro();
 void predictOutput();
 String getActivityType(float* result);
+void loadBuffor(int sizeSample, boolean gyroscope);
 
 sensors_event_t a, g, temp;
 
@@ -27,6 +31,7 @@ bool openPredict = false;
 
 void setup() {
   accSet = new float[9];
+  gyroSet = new float[9];
   pinMode(LED, OUTPUT);
   Serial.begin(9600);
 
@@ -38,7 +43,6 @@ void setup() {
     digitalWrite(LED, HIGH);
   }
   Wire.begin();
-
 }
 
 void loop() {
@@ -52,18 +56,19 @@ void loop() {
   }
 
   String dataAccGyro = getAccGyro();
-  
   if(openDataFlow){
     Bt.print(dataAccGyro.c_str());
+    digitalWrite(LED, !digitalRead(LED));
   }
 
-  if(openPredict && licznikDanych == 3){
+  if(openPredict && licznikDanych == SampleSize){
       predictOutput();
+      digitalWrite(LED, !digitalRead(LED));
   }
 
 
   checkMsg(c);
-  delay(400);
+  delay(delayTime);
 }
 
 void checkMsg(char znak){
@@ -80,10 +85,12 @@ void checkMsg(char znak){
 
     case '3':
       openDataFlow = !openDataFlow;
+      delayTime = 100;
       break;
 
     case '4':
       openPredict = !openPredict;
+      delayTime = 300;
       break;
     
     case '5':
@@ -100,41 +107,36 @@ void checkMsg(char znak){
 }
 
 String getAccGyro(){
-  if(licznikDanych==3){
+  if(licznikDanych==SampleSize){
     licznikDanych=0;
   }
   mpu.getEvent(&a, &g, &temp);
   aX = a.acceleration.x;
   aY = a.acceleration.y;
   aZ = a.acceleration.z;
-  gX = a.gyro.x;
-  gY = a.gyro.y;
-  gZ = a.gyro.z;
-  accSet[licznikDanych*3+0] = a.acceleration.x;
-  accSet[licznikDanych*3+1] = a.acceleration.y;
-  accSet[licznikDanych*3+2] = a.acceleration.z;
+  gX = g.gyro.x;
+  gY = g.gyro.y;
+  gZ = g.gyro.z;
+  accSet[licznikDanych*3] = aX;
+  accSet[licznikDanych*3+1] = aY;
+  accSet[licznikDanych*3+2] = aZ;
+  gyroSet[licznikDanych*3] = gX;
+  gyroSet[licznikDanych*3+1] = gY;
+  gyroSet[licznikDanych*3+2] = gZ;
   licznikDanych++;
   return String(aX) + "," + String(aY) + "," + String(aZ) + "," + String(gX) + "," + String(gY) + "," + String(gZ);
 }
 
 void predictOutput(){
-  for(int i=0; i<9; i++){
+  for(int i=0; i<SampleSize*3; i++){
     printf("A%d: %.2f", i, accSet[i]);
   }
   printf("\n");
-  NN->getInputBuffer()[0] = accSet[0];
-  NN->getInputBuffer()[1] = accSet[1];
-  NN->getInputBuffer()[2] = accSet[2];
-  NN->getInputBuffer()[3] = accSet[3];
-  NN->getInputBuffer()[4] = accSet[4];
-  NN->getInputBuffer()[5] = accSet[5];
-  NN->getInputBuffer()[6] = accSet[6];
-  NN->getInputBuffer()[7] = accSet[7];
-  NN->getInputBuffer()[8] = accSet[8];;
+  loadBuffor(SampleSize,true);
 
   float* result = NN->predict();
   
-  Serial.printf("result1 %.2f - result2 %.2f - result3 %.2f, result4 %.2f \n",result[0], result[1], result[2], result[3]);
+  Serial.printf("Chód %.2f - Bieg %.2f - Rower %.2f, Spoczynek %.2f \n",result[0], result[1], result[2], result[3]);
 
   Bt.print(getActivityType(result).c_str());
 }
@@ -166,7 +168,23 @@ String getActivityType(float* result)
   case 3:
      return "Spoczynek";
     break;
+  }
+  return "";
+}
 
+void loadBuffor(int sizeSample, boolean gyroscope){
+  int licznik = 0;
+  for(int i=0;i<sizeSample;++i){
+    NN->getInputBuffer()[licznik*3] = accSet[i*3];
+    NN->getInputBuffer()[licznik*3+1] = accSet[i*3+1];
+    NN->getInputBuffer()[licznik*3+2] = accSet[i*3+2];
+    if(gyroscope){
+      licznik++;
+      NN->getInputBuffer()[licznik*3] = gyroSet[i*3];
+      NN->getInputBuffer()[licznik*3+1] = gyroSet[i*3+1];
+      NN->getInputBuffer()[licznik*3+2] = gyroSet[i*3+2];
+    }
+    licznik++;
   }
 }
 

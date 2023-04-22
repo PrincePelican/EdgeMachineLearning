@@ -14,11 +14,11 @@ import pandas as pd
 df = pd.read_csv('AllData.csv')
 df = df.sample(frac=1)
 
+# df = df.drop(columns=('G'))
+
 test_size = int(len(df) * 0.1)
 train = df.iloc[:-test_size,:].copy() 
 test = df.iloc[-test_size:,:].copy()
-train = train.drop(columns=('G'))
-test = test.drop(columns=('G'))
 
 train_Y = train['Activity']
 train_X = train.drop(columns=('Activity'))
@@ -35,20 +35,28 @@ print(train_Y.shape)
 
 model = keras.Sequential([
     layers.Input(shape=(test_X.shape[1])),
-    layers.Dense(24, activation='ReLU'),
-    layers.Dense(10, activation='ReLU'),
-    layers.Dense(10, activation='ReLU'),
-    layers.Dense(10, activation='ReLU'),
-    layers.Dense(10, activation='ReLU'),
-    layers.Dense(24, activation='ReLU'),
-    layers.Dense(5, 'softmax')
+    layers.Dense(40, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(16, activation='ReLU'),
+    layers.Dense(40, activation='ReLU'),
+    layers.Dense(4, 'softmax')
 ])
 
 model.summary()
 
 model.compile(optimizer='adam',loss=keras.losses.SparseCategoricalCrossentropy(), metrics=['accuracy'])
 
-model.fit(train_X, train_Y, epochs = 15)
+model.fit(train_X, train_Y, epochs = 50)
 
 model.evaluate(test_X, test_Y)
 

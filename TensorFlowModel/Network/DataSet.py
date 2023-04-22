@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 
-interval = 4 # how much row will be skipped
+interval = 3 # how much row will be skipped
 merge_row_number = 3 # how much data will be in one sample
 
 dir = os.getcwd() + "\\Data\\"
@@ -39,9 +39,9 @@ def prepColumns(merge_row_number):
         columns.append(f"A{i*3+1}")
         columns.append(f"A{i*3+2}")
         columns.append(f"A{i*3+3}")
-        columns.append(f"G")
-        columns.append(f"G")
-        columns.append(f"G")
+        columns.append(f"G{i*3+1}")
+        columns.append(f"G{i*3+2}")
+        columns.append(f"G{i*3+3}")
         columns.append(f"Activity")
     return columns
 
