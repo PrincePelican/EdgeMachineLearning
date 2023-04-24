@@ -5,7 +5,7 @@
 #include "NeuralNetwork.cpp"
 
 #define LED 2
-#define SampleSize 4
+#define SampleSize 3
 Adafruit_MPU6050 mpu;
 BluetoothSerial Bt;
 float* accSet;
@@ -55,20 +55,24 @@ void loop() {
     c = Bt.read();
   }
 
+  checkMsg(c);
+
+  unsigned long time = 0;
+  if(openPredict && licznikDanych == SampleSize){
+    unsigned long start = millis();
+      predictOutput();
+      digitalWrite(LED, !digitalRead(LED));
+    unsigned long end = millis();
+    time = end-start;
+  }
+
   String dataAccGyro = getAccGyro();
   if(openDataFlow){
     Bt.print(dataAccGyro.c_str());
     digitalWrite(LED, !digitalRead(LED));
   }
 
-  if(openPredict && licznikDanych == SampleSize){
-      predictOutput();
-      digitalWrite(LED, !digitalRead(LED));
-  }
-
-
-  checkMsg(c);
-  delay(delayTime);
+  delay(delayTime-time);
 }
 
 void checkMsg(char znak){
@@ -130,6 +134,10 @@ String getAccGyro(){
 void predictOutput(){
   for(int i=0; i<SampleSize*3; i++){
     printf("A%d: %.2f", i, accSet[i]);
+  }
+  printf("\n");
+    for(int i=0; i<SampleSize*3; i++){
+    printf("A%d: %.2f", i, gyroSet[i]);
   }
   printf("\n");
   loadBuffor(SampleSize,true);

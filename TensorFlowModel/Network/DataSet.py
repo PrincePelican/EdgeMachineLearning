@@ -8,8 +8,6 @@ merge_row_number = 3 # how much data will be in one sample
 dir = os.getcwd() + "\\Data\\"
 file_list = os.listdir(dir)
 
-print(file_list)
-
 def prepareAllFiles(interval: int, merge_row_number: int):
     merged = pd.DataFrame()
     for x in file_list:
@@ -42,6 +40,9 @@ def prepColumns(merge_row_number):
         columns.append(f"G{i*3+1}")
         columns.append(f"G{i*3+2}")
         columns.append(f"G{i*3+3}")
+        # columns.append(f"G")
+        # columns.append(f"G")
+        # columns.append(f"G")
         columns.append(f"Activity")
     return columns
 

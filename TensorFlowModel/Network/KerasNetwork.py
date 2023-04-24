@@ -35,20 +35,13 @@ print(train_Y.shape)
 
 model = keras.Sequential([
     layers.Input(shape=(test_X.shape[1])),
-    layers.Dense(40, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(16, activation='ReLU'),
-    layers.Dense(40, activation='ReLU'),
+    layers.Dense(24, activation='ReLU'),
+    layers.Dense(24, activation='ReLU'),
+    layers.Dense(24, activation='ReLU'),
+    layers.Dense(24, activation='ReLU'),
+    layers.Dense(24, activation='ReLU'),
+    layers.Dense(24, activation='ReLU'),
+    layers.Dropout(0.3),
     layers.Dense(4, 'softmax')
 ])
 
