@@ -10,7 +10,7 @@ const int kArenaSize = 10*1024;
 class NeuralNetwork{
     private:
     tflite::ErrorReporter *errorReporter;
-    tflite::MicroMutableOpResolver<10> *resolver;
+    tflite::MicroMutableOpResolver<3> *resolver;
     tflite::MicroInterpreter *interpreter;
     const tflite::Model *model;
     TfLiteTensor *input;
@@ -29,7 +29,7 @@ class NeuralNetwork{
             return;
         }
 
-        resolver = new tflite::MicroMutableOpResolver<10>();
+        resolver = new tflite::MicroMutableOpResolver<3>();
         resolver->AddFullyConnected();
         resolver->AddRelu();
         resolver->AddSoftmax();

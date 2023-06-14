@@ -17,7 +17,7 @@ void checkMsg(char znak);
 String getAccGyro();
 void predictOutput();
 String getActivityType(float* result);
-void loadBuffor(int sizeSample, boolean gyroscope);
+void loadBufor(int sizeSample, boolean gyroscope);
 
 sensors_event_t a, g, temp;
 
@@ -57,22 +57,22 @@ void loop() {
 
   checkMsg(c);
 
-  unsigned long time = 0;
-  if(openPredict && licznikDanych == SampleSize){
-    unsigned long start = millis();
-      predictOutput();
-      digitalWrite(LED, !digitalRead(LED));
-    unsigned long end = millis();
-    time = end-start;
-  }
-
   String dataAccGyro = getAccGyro();
   if(openDataFlow){
     Bt.print(dataAccGyro.c_str());
     digitalWrite(LED, !digitalRead(LED));
   }
 
-  delay(delayTime-time);
+  unsigned long timeOfPrediction = 0;
+  if(openPredict && licznikDanych == SampleSize){
+    unsigned long start = millis();
+      predictOutput();
+      digitalWrite(LED, !digitalRead(LED));
+    unsigned long end = millis();
+    timeOfPrediction = end-start;
+  }
+
+  delay(delayTime-timeOfPrediction);
 }
 
 void checkMsg(char znak){
@@ -140,7 +140,7 @@ void predictOutput(){
     printf("A%d: %.2f", i, gyroSet[i]);
   }
   printf("\n");
-  loadBuffor(SampleSize,true);
+  loadBufor(SampleSize,true);
 
   float* result = NN->predict();
   
@@ -180,7 +180,7 @@ String getActivityType(float* result)
   return "";
 }
 
-void loadBuffor(int sizeSample, boolean gyroscope){
+void loadBufor(int sizeSample, boolean gyroscope){
   int licznik = 0;
   for(int i=0;i<sizeSample;++i){
     NN->getInputBuffer()[licznik*3] = accSet[i*3];
