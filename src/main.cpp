@@ -79,14 +79,6 @@ void checkMsg(char znak){
 
   switch (znak)
   {
-    case '1':
-      digitalWrite(LED, HIGH);
-      break;
-
-    case '2':
-      digitalWrite(LED, LOW);
-      break;
-
     case '3':
       openDataFlow = !openDataFlow;
       delayTime = 100;
@@ -162,11 +154,11 @@ String getActivityType(float* result)
   switch (maks)
   {
   case 0:
-    return "Chód";
+    return "Chodzenie";
     break;
 
   case 1:
-     return "Bieg";
+     return "Bieganie";
     break;
   
   case 2:
